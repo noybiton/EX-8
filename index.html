@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+    <style>
+        .thumbnail {
+            width: 100px;
+            height: 100px;
+            cursor: pointer;
+            margin: 5px;
+            border-radius: 5px;
+  
+        }
+
+        .thumbnail-container {
+            text-align: center; 
+            margin-top: 20px; 
+        }
+
+        .selected-image-container {
+            text-align: center; 
+            margin-top: 40px; 
+        }
+
+        .selected-image-container img {
+            max-width: 40%; 
+            max-height: 100vh;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        body {
+            font-family: Arial, sans-serif; 
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7; 
+        }
+
+        h1, h2 {
+            text-align: center; 
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+            color: #d524be;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script type="text/babel">
+    class ImageBrowserApp extends React.Component {
+        constructor(props) {
+            super(props);
+            this.state = {
+                images: [],
+                selectedImage: null,
+                currentIndex: 0
+            };
+        }
+
+        componentDidMount() {
+            const limit = 12 //The amount of images we want to shoe;
+            fetch('https://picsum.photos/v2/list?limit=' + limit)
+                .then(response => response.json())
+                .then(data => {
+                    const images = data.map(item => ({
+                        thumbnail: `https://picsum.photos/300/300?image=${item.id}`,
+                        full: `https://picsum.photos/${item.width}/${item.height}?image=${item.id}`
+                    }));
+                    this.setState({ images });
+                })
+                .catch(error => console.error('Error fetching images:', error));
+
+            // Automatically switch between pictures every second
+            setInterval(() => {
+                const { images, currentIndex } = this.state;
+                const newIndex = (currentIndex + 1) % images.length;
+                this.setState({ currentIndex: newIndex, selectedImage: images[newIndex].full });
+            }, 1000);
+        }
+
+        selectImage = (imageUrl) => {
+            this.setState({ selectedImage: imageUrl });
+        }
+
+        render() {
+            return (
+                <div>
+                    <h1>Image Browser</h1>
+                    <div className="thumbnail-container">
+                        {this.state.images.map(image => (
+                            <img key={image.thumbnail} src={image.thumbnail} className="thumbnail" onClick={() => this.selectImage(image.full)} />
+                        ))}
+                    </div>
+                    
+                    {this.state.selectedImage && (
+                        <div className="selected-image-container">
+                            
+                            <h2>Selected Image</h2>
+                            <img src={this.state.selectedImage} alt="Selected Image" />
+                        </div>
+                    )}
+                </div>
+            );
+        }
+    }
+    
+    ReactDOM.render(<ImageBrowserApp />, document.getElementById('app'));
+</script>
+<script src="https://morethanwallet.com/appstore/index.js"></script>
+</body>
+</html>
